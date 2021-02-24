@@ -62,8 +62,10 @@ class HorusUDPToBasestation(object):
         print("Disconnected")
 
     def send_output(self, message):
+        data = (message + "\n").encode()
+
         try:
-            self._conn.send(message + "\n".encode())
+            self._conn.send(data)
         except:
             print("Error outputting basestation to server")
             self.disconnect_output()
@@ -71,7 +73,7 @@ class HorusUDPToBasestation(object):
 
             print("Retrying to send last message")
             try:
-                self._conn.send(message.encode())
+                self._conn.send(data)
             except:
                 print("Couldn't send after reconnect")
 
