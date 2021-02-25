@@ -30,6 +30,8 @@ class HorusUDPToBasestation(object):
     def __init__(self):
         self._sondes = {}
 
+        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         self.connect_output()
 
         # Instantiate the UDP listener.
@@ -54,35 +56,39 @@ class HorusUDPToBasestation(object):
 
     def connect_output(self):
         # Connect to basestation output
-        print("Connecting")
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((config.OUTPUT_IP, config.OUTPUT_PORT))
-        s.listen(5)
-        self._conn, addr = s.accept()
-        print("Connected")
+        connected = False
+        while not connected:
+            try:
+                print("Connecting")
+                self._s.connect((config.OUTPUT_IP, config.OUTPUT_PORT))
+                connected = True
+                print('Connection successful!\n')
+
+            except socket.error as exception:
+                print('Unable to connect to socket: {}\n'.format(exception))
+                time.sleep(5)
 
     def disconnect_output(self):
         # Disconnect from basestation output
         print("Disconnecting")
-        self._conn.close()
+        self._s.close()
         print("Disconnected")
 
     def send_output(self, message):
         data = (message + "\n").encode()
 
         try:
-            self._conn.send(data)
-        except:
-            print("Error outputting basestation to server")
+            self._s.send(data)
+        except socket.error as exception:
+            print("Error outputting basestation to server {}".format(exception))
             self.disconnect_output()
             self.connect_output()
 
             print("Retrying to send last message")
             try:
-                self._conn.send(data)
-            except:
-                print("Couldn't send after reconnect")
+                self._s.send(data)
+            except socket.error as exception:
+                print("Couldn't send after reconnect {}".format(exception))
 
     def handle_sonde_message(self, packet):
         message_time = datetime.datetime.now()
