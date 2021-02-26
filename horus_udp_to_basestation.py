@@ -30,7 +30,7 @@ class HorusUDPToBasestation(object):
     def __init__(self):
         self._sondes = {}
 
-        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._s = None
 
         self.connect_output()
 
@@ -60,6 +60,7 @@ class HorusUDPToBasestation(object):
         while not connected:
             try:
                 print("Connecting")
+                self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self._s.connect((config.OUTPUT_IP, config.OUTPUT_PORT))
                 connected = True
                 print('Connection successful!\n')
